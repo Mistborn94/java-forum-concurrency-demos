@@ -70,6 +70,8 @@ public class ExchangerDemo {
 
     @AllArgsConstructor
     static class FillingLoop implements Callable<Boolean> {
+        private final int sleepTime = ThreadLocalRandom.current().nextInt(100, 200);
+
         private final Exchanger<DataBuffer> exchanger;
         private final int maxSize;
         private final int iterations;
@@ -80,14 +82,14 @@ public class ExchangerDemo {
             DataBuffer currentBuffer = new DataBuffer();
 
             for (int i = 0; i < iterations; i++) {
-                log("\u001b[36mFilling up the buffer");
+                logFilling();
                 while (currentBuffer.size() < maxSize) {
-                    Thread.sleep(ThreadLocalRandom.current().nextInt(100, 200));
+                    Thread.sleep(sleepTime);
                     currentBuffer.addItem();
                 }
-                log("\u001b[36;1mBuffer full, waiting for exchange");
+                logFull();
                 currentBuffer = exchanger.exchange(currentBuffer);
-                log("\u001b[36;1mExchange complete, buffer is %s", currentBuffer);
+                logFullExchanged(currentBuffer);
             }
             return true;
         }
@@ -95,8 +97,7 @@ public class ExchangerDemo {
 
     @AllArgsConstructor
     static class EmptyingLoop implements Callable<Boolean> {
-        private static final AtomicInteger counter = new AtomicInteger(0);
-        private static final String name = "EmptyingLoop #" + counter.getAndIncrement();
+        private final int sleepTime = ThreadLocalRandom.current().nextInt(100, 200);
         private final Exchanger<DataBuffer> exchanger;
         private final int iterations;
 
@@ -106,16 +107,42 @@ public class ExchangerDemo {
             DataBuffer currentBuffer = new DataBuffer();
 
             for (int i = 0; i < iterations; i++) {
-                log("\u001b[35mEmptying out the buffer");
+                logEmptying();
                 while (currentBuffer.size() > 0) {
-                    Thread.sleep(ThreadLocalRandom.current().nextInt(100, 200));
+                    Thread.sleep(sleepTime);
                     currentBuffer.clearItem();
                 }
-                log("\u001b[35;1mBuffer empty, waiting for exchange");
+                logEmpty();
                 currentBuffer = exchanger.exchange(currentBuffer);
-                log("\u001b[35;1mExchange complete, buffer is %s", currentBuffer);
+                logEmptyExchanged(currentBuffer);
             }
             return true;
         }
     }
+
+
+    private static void logFullExchanged(DataBuffer currentBuffer) {
+        log("\u001b[36;1mExchange complete, buffer is %s", currentBuffer);
+    }
+
+    private static void logFull() {
+        log("\u001b[36;1mBuffer full, waiting for exchange");
+    }
+
+    private static void logFilling() {
+        log("\u001b[36mFilling up the buffer");
+    }
+
+    private static void logEmptying() {
+        log("\u001b[35mEmptying out the buffer");
+    }
+
+    private static void logEmpty() {
+        log("\u001b[35;1mBuffer empty, waiting for exchange");
+    }
+
+    private static void logEmptyExchanged(DataBuffer currentBuffer) {
+        log("\u001b[35;1mExchange complete, buffer is %s", currentBuffer);
+    }
+
 }

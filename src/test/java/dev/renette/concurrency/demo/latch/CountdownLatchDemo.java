@@ -36,12 +36,11 @@ class CountdownLatchDemo {
         @Override
         @SneakyThrows
         public void run() {
-            log("\u001B[31mFinal task waiting for latch");
+            logWait();
             latch.await();
-            log("\u001B[32mFinal task allowed through");
+            logLatchOpened();
         }
     }
-
     @AllArgsConstructor
     static class CountdownCallable implements Callable<Boolean> {
 
@@ -65,4 +64,14 @@ class CountdownLatchDemo {
             return true;
         }
     }
+
+
+    private static void logLatchOpened() {
+        log("\u001B[32mFinal task allowed through");
+    }
+
+    private static void logWait() {
+        log("\u001B[31mFinal task waiting for latch");
+    }
+
 }

@@ -40,16 +40,29 @@ public class SemaphoreDemo {
         @Override
         @SneakyThrows
         public String call() {
-            log("\u001B[33m%s waiting for semaphore", name);
+            logWaiting(name);
             semaphore.acquire();
             try {
-                log("\u001B[32m%s acquired semaphore, sleeping for 100ms", name);
+                logAcquired(name);
                 Thread.sleep(100);
             } finally {
-                log("\u001B[36m%s releasing semaphore", name);
+                logReleasing(name);
                 semaphore.release();
             }
             return name;
         }
+    }
+
+
+    private static void logReleasing(String name) {
+        log("\u001B[36m%s releasing semaphore", name);
+    }
+
+    private static void logAcquired(String name) {
+        log("\u001B[32m%s acquired semaphore, sleeping for 100ms", name);
+    }
+
+    private static void logWaiting(String name) {
+        log("\u001B[33m%s waiting for semaphore", name);
     }
 }

@@ -29,7 +29,6 @@ public class BarrierDemo {
 
     @AllArgsConstructor
     static class BarrierTask implements Callable<Boolean> {
-
         private static final AtomicInteger taskCounter = new AtomicInteger(1);
 
         private final int sleepTime = ThreadLocalRandom.current().nextInt(500);
@@ -41,13 +40,25 @@ public class BarrierDemo {
         @SneakyThrows
         public Boolean call() {
             for (int i = 0; i < iterations; i++) {
-                log("\u001B[36m%s sleeping for %dms", name, sleepTime);
+                logSleeping(name, sleepTime);
                 Thread.sleep(sleepTime);
-                log("\u001B[33m%s waiting for barrier", name);
+                logWaiting(name);
                 barrier.await();
-                log("\u001B[32m%s allowed through", name);
+                logAllowed(name);
             }
             return true;
         }
+    }
+
+    private static void logAllowed(String name) {
+        log("\u001B[32m%s allowed through", name);
+    }
+
+    private static void logWaiting(String name) {
+        log("\u001B[33m%s waiting for barrier", name);
+    }
+
+    private static void logSleeping(String name, int sleepTime) {
+        log("\u001B[36m%s sleeping for %dms", name, sleepTime);
     }
 }

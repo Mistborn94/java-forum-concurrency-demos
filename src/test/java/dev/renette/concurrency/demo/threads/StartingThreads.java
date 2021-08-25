@@ -2,13 +2,13 @@ package dev.renette.concurrency.demo.threads;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static dev.renette.concurrency.demo.helper.Helper.log;
 
@@ -25,9 +25,9 @@ class StartingThreads {
 
     @Test
     void parallelStream() {
-        var numbersList = initList(10);
         log("Starting");
-        var sum = numbersList.parallelStream()
+        var sum = IntStream.range(0, 10)
+                .parallel()
                 .peek(i -> log("Seeing value [%d]", i))
                 .map(i -> i * i)
                 .reduce(Integer::sum)
@@ -43,16 +43,16 @@ class StartingThreads {
 
         //Runnable
         var runnableFuture = executorService.submit(() -> log("Runnable"));
+        runnableFuture.get();
         //Callable
         var callableFuture = executorService.submit(() -> {
-            log("Callabe");
-            return "Running";
+            log("Callable");
+            return true;
         });
+        callableFuture.get();
 
         //Multiple callables
-        var futuresList = executorService.invokeAll(
-                initCallableList(20)
-        );
+        var futuresList = executorService.invokeAll(initCallableList(20));
 
         runnableFuture.get();
         callableFuture.get();
@@ -66,35 +66,27 @@ class StartingThreads {
     }
 
     @Test
-    void completableFuture() throws InterruptedException, ExecutionException {
+    void completableFuture() throws ExecutionException, InterruptedException {
         //Supplier
-        var future = CompletableFuture.supplyAsync(() -> {
+        var stringFuture = CompletableFuture.supplyAsync(() -> {
             log("Supplier");
             return "Value";
         });
+        String stringValue = stringFuture.get();
         //Runnable
-        CompletableFuture.runAsync(() -> log("Runnable"));
+        var voidFuture = CompletableFuture.runAsync(() -> log("Runnable"));
+        voidFuture.get();
     }
 
-
-    private List<Callable<String>> initCallableList(int size) {
-        return initList(size).stream().map(this::makeCallable).collect(Collectors.toList());
+    private List<Callable<Boolean>> initCallableList(int size) {
+        return IntStream.range(0, size).mapToObj(this::makeCallable).collect(Collectors.toList());
     }
 
-    private Callable<String> makeCallable(Integer i) {
+    private Callable<Boolean> makeCallable(Integer i) {
         return () -> {
-            log("Item " + i);
-            return "Item " + i;
+            log("Inside callable " + i);
+            return true;
         };
-    }
-
-    private List<Integer> initList(int size) {
-        ArrayList<Integer> integers = new ArrayList<>(size);
-
-        for (int i = 0; i < size; ++i) {
-            integers.add(i);
-        }
-        return integers;
     }
 
 }

@@ -37,9 +37,9 @@ public class PhaserDemo {
         public void run() {
             int phase = 0;
             do {
-                log("\u001B[31mRunnable waiting for phaser. Registered parties is %d", phaser.getRegisteredParties());
+                logWaiting(phaser.getRegisteredParties());
                 phaser.awaitAdvance(phase);
-                log("\u001B[32mRunnable allowed through. Phase %d complete", phase);
+                logPhaseComplete(phase);
                 phase += 1;
             } while (phaser.getRegisteredParties() > 0);
         }
@@ -50,9 +50,10 @@ public class PhaserDemo {
 
         private static final AtomicInteger taskCounter = new AtomicInteger(1);
 
-        private final int sleepTime = ThreadLocalRandom.current().nextInt(500);
         private final int taskId = taskCounter.getAndIncrement();
         private final String name = String.format("Task #%02d", taskId);
+        private final int sleepTime = ThreadLocalRandom.current().nextInt(200, 500);
+
         private final Phaser phaser;
 
         @Override
@@ -63,18 +64,39 @@ public class PhaserDemo {
 
             while (shouldContinue) {
                 shouldContinue = taskId % (iteration + 1) == 0;
-                log("\u001B[33m%s sleeping for %dms", name, sleepTime);
+                logSleeping(name, sleepTime);
                 Thread.sleep(sleepTime);
                 if (shouldContinue) {
-                    log("\u001B[36m%s arrived at phaser and waiting", name);
+                    logWaiting(name);
                     phaser.arriveAndAwaitAdvance();
                 } else {
-                    log("\u001B[35m%s arrived at phaser and deregistering", name);
+                    logDeregistering(name);
                     phaser.arriveAndDeregister();
                 }
                 iteration += 1;
             }
             return name;
         }
+    }
+
+
+    private static void logPhaseComplete(int phase) {
+        log("\u001B[32mRunnable allowed through. Phase %d complete", phase);
+    }
+
+    private static void logWaiting(int partyCount) {
+        log("\u001B[31mRunnable waiting for phaser. Registered parties count is %d", partyCount);
+    }
+
+    private static void logDeregistering(String name) {
+        log("\u001B[35m%s arrived at phaser and deregistering", name);
+    }
+
+    private static void logWaiting(String name) {
+        log("\u001B[36m%s arrived at phaser and waiting", name);
+    }
+
+    private static void logSleeping(String name, int sleepTime) {
+        log("\u001B[33m%s sleeping for %dms", name, sleepTime);
     }
 }
