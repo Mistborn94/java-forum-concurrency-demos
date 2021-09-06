@@ -1,30 +1,27 @@
 package dev.renette.concurrency.demo.barrier;
 
+import dev.renette.concurrency.demo.common.ConcurrencyDemo;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static dev.renette.concurrency.demo.helper.Helper.generateCallablesList;
-import static dev.renette.concurrency.demo.helper.Helper.log;
+import static dev.renette.concurrency.demo.common.Helper.generateCallablesList;
+import static dev.renette.concurrency.demo.common.Helper.log;
 
-public class BarrierDemo {
+public class BarrierDemo extends ConcurrencyDemo {
 
     @Test
     void barrierDemo() throws InterruptedException {
         int tasks = 5;
         int iterations = 3;
+        var barrier = new CyclicBarrier(tasks);
 
-        final CyclicBarrier barrier = new CyclicBarrier(tasks);
-        var callables = generateCallablesList(tasks, () -> new BarrierTask(barrier, iterations));
-
-        ExecutorService executorService = Executors.newCachedThreadPool();
-        executorService.invokeAll(callables);
-
-        executorService.shutdown();
-        executorService.awaitTermination(1, TimeUnit.HOURS);
+        executorService.invokeAll(generateCallablesList(tasks, () -> new BarrierTask(barrier, iterations)));
     }
 
     @AllArgsConstructor

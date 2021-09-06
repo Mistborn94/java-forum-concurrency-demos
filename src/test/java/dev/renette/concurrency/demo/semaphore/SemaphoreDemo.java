@@ -1,31 +1,27 @@
 package dev.renette.concurrency.demo.semaphore;
 
+import dev.renette.concurrency.demo.common.ConcurrencyDemo;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static dev.renette.concurrency.demo.helper.Helper.generateCallablesList;
-import static dev.renette.concurrency.demo.helper.Helper.log;
+import static dev.renette.concurrency.demo.common.Helper.generateCallablesList;
+import static dev.renette.concurrency.demo.common.Helper.log;
 
-public class SemaphoreDemo {
-
+public class SemaphoreDemo extends ConcurrencyDemo {
 
     @Test
     void semaphoreDemo() throws InterruptedException {
-        int permits = 2;
+        int permits = 4;
         int tasks = 15;
 
         Semaphore semaphore = new Semaphore(permits);
-        var callables = generateCallablesList(tasks, () -> new SemaphoreCallable(semaphore));
 
-        ExecutorService executorService = Executors.newCachedThreadPool();
-        executorService.invokeAll(callables);
-
-        executorService.shutdown();
-        executorService.awaitTermination(1, TimeUnit.HOURS);
+        executorService.invokeAll(generateCallablesList(tasks, () -> new SemaphoreCallable(semaphore)));
     }
 
 
@@ -44,7 +40,7 @@ public class SemaphoreDemo {
             semaphore.acquire();
             try {
                 logAcquired(name);
-                Thread.sleep(100);
+                Thread.sleep(75);
             } finally {
                 logReleasing(name);
                 semaphore.release();

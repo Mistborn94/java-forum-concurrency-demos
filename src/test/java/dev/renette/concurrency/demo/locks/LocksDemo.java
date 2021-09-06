@@ -1,27 +1,26 @@
 package dev.renette.concurrency.demo.locks;
 
+import dev.renette.concurrency.demo.common.ConcurrencyDemo;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static dev.renette.concurrency.demo.helper.Helper.generateCallablesList;
-import static dev.renette.concurrency.demo.helper.Helper.log;
+import static dev.renette.concurrency.demo.common.Helper.generateCallablesList;
+import static dev.renette.concurrency.demo.common.Helper.log;
 
-public class LocksDemo {
+public class LocksDemo extends ConcurrencyDemo {
 
     @Test
     void locksDemo() throws InterruptedException {
+        int tasks = 15;
         Lock lock = new ReentrantLock();
-        ExecutorService executorService = Executors.newCachedThreadPool();
-        executorService.invokeAll(generateCallablesList(15, () -> new LockingLoop(lock)));
-
-        executorService.shutdown();
-        executorService.awaitTermination(1, TimeUnit.HOURS);
+        executorService.invokeAll(generateCallablesList(tasks, () -> new LockingLoop(lock)));
     }
 
     @AllArgsConstructor
@@ -35,15 +34,18 @@ public class LocksDemo {
         @Override
         @SneakyThrows
         public Boolean call() {
-            try {
-                Thread.sleep(sleepTime);
-                logWaiting(name);
-                lock.lock();
-                logLockAcquired(name, sleepTime);
-                Thread.sleep(sleepTime);
-                logComplete(name);
-            } finally {
-                lock.unlock();
+            logWaiting(name);
+            if (lock.tryLock()) {
+//            lock.lock();
+                try {
+                    logLockAcquired(name, sleepTime);
+                    Thread.sleep(sleepTime);
+                    logComplete(name);
+                } finally {
+                    lock.unlock();
+                }
+            } else {
+                log("%s Doing nothing", name);
             }
             return true;
         }

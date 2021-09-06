@@ -1,4 +1,4 @@
-package dev.renette.concurrency.demo.helper;
+package dev.renette.concurrency.demo.common;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -19,4 +19,5 @@ public class Helper {
     public static <T> List<Callable<T>> generateCallablesList(int count, Supplier<? extends Callable<T>> supplier) {
         return Stream.generate(supplier).limit(count).collect(Collectors.toList());
     }
+
 }

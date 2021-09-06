@@ -1,30 +1,27 @@
 package dev.renette.concurrency.demo.phaser;
 
+import dev.renette.concurrency.demo.common.ConcurrencyDemo;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Phaser;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static dev.renette.concurrency.demo.helper.Helper.generateCallablesList;
+import static dev.renette.concurrency.demo.common.Helper.generateCallablesList;
 
-public class PhaserSnippets {
+public class PhaserSnippets extends ConcurrencyDemo {
 
     @Test
     void phaserDemo() throws InterruptedException {
         int tasks = 30;
 
         Phaser phaser = new Phaser();
-        WaitingTask waitingTask = new WaitingTask(phaser);
-        var callables = generateCallablesList(tasks, () -> new ArrivingTask(phaser));
 
-        ExecutorService executorService = Executors.newCachedThreadPool();
-        executorService.submit(waitingTask);
-        executorService.invokeAll(callables);
-
-        executorService.shutdown();
-        executorService.awaitTermination(1, TimeUnit.HOURS);
+        executorService.submit(new WaitingTask(phaser));
+        executorService.invokeAll(generateCallablesList(tasks, () -> new ArrivingTask(phaser)));
     }
 
     @AllArgsConstructor

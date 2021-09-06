@@ -1,30 +1,29 @@
 package dev.renette.concurrency.demo.exchanger;
 
+import dev.renette.concurrency.demo.common.ConcurrencyDemo;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Exchanger;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static dev.renette.concurrency.demo.helper.Helper.generateCallablesList;
-import static dev.renette.concurrency.demo.helper.Helper.log;
+import static dev.renette.concurrency.demo.common.Helper.generateCallablesList;
+import static dev.renette.concurrency.demo.common.Helper.log;
 
-public class ExchangerDemo {
+public class ExchangerDemo extends ConcurrencyDemo {
 
     @Test
-    void exchangerDemo_2threads() throws InterruptedException {
+    void exchangerDemo_2threads() {
         var exchanger = new Exchanger<DataBuffer>();
         int iterations = 3;
         int maxSize = 10;
 
-        ExecutorService executorService = Executors.newCachedThreadPool();
         executorService.submit(new FillingLoop(exchanger, maxSize, iterations));
         executorService.submit(new EmptyingLoop(exchanger, iterations));
-
-        executorService.shutdown();
-        executorService.awaitTermination(1, TimeUnit.HOURS);
     }
 
     @Test
@@ -36,36 +35,8 @@ public class ExchangerDemo {
         int iterations = 1;
         int maxSize = 10;
 
-        ExecutorService executorService = Executors.newCachedThreadPool();
         executorService.invokeAll(generateCallablesList(4, () -> new FillingLoop(exchanger, maxSize, iterations)));
         executorService.invokeAll(generateCallablesList(4, () -> new EmptyingLoop(exchanger, iterations)));
-
-        executorService.shutdown();
-        executorService.awaitTermination(1, TimeUnit.HOURS);
-    }
-
-    static class DataBuffer {
-        private static final AtomicInteger counter = new AtomicInteger(0);
-
-        private final int id = counter.getAndIncrement();
-        private int size = 0;
-
-        void addItem() {
-            size += 1;
-        }
-
-        void clearItem() {
-            size -= 1;
-        }
-
-        int size() {
-            return size;
-        }
-
-        @Override
-        public String toString() {
-            return "DataBuffer #" + id + " {size=" + size + "}";
-        }
     }
 
     @AllArgsConstructor
@@ -143,6 +114,30 @@ public class ExchangerDemo {
 
     private static void logEmptyExchanged(DataBuffer currentBuffer) {
         log("\u001b[35;1mExchange complete, buffer is %s", currentBuffer);
+    }
+
+    static class DataBuffer {
+        private static final AtomicInteger counter = new AtomicInteger(0);
+
+        private final int id = counter.getAndIncrement();
+        private int size = 0;
+
+        void addItem() {
+            size += 1;
+        }
+
+        void clearItem() {
+            size -= 1;
+        }
+
+        int size() {
+            return size;
+        }
+
+        @Override
+        public String toString() {
+            return "DataBuffer #" + id + " {size=" + size + "}";
+        }
     }
 
 }

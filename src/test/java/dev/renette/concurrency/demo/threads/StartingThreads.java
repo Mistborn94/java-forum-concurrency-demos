@@ -10,7 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static dev.renette.concurrency.demo.helper.Helper.log;
+import static dev.renette.concurrency.demo.common.Helper.log;
 
 class StartingThreads {
 
@@ -19,8 +19,9 @@ class StartingThreads {
         log("Starting");
         var thread = new Thread(() -> log("Running in thread"));
         thread.start();
-        log("Finished");
+        log("In Progress");
         thread.join();
+        log("Finished");
     }
 
     @Test
@@ -39,7 +40,7 @@ class StartingThreads {
 
     @Test
     void executorService() throws InterruptedException, ExecutionException {
-        var executorService = Executors.newFixedThreadPool(5);
+        var executorService = Executors.newCachedThreadPool();
 
         //Runnable
         var runnableFuture = executorService.submit(() -> log("Runnable"));
@@ -72,9 +73,10 @@ class StartingThreads {
             log("Supplier");
             return "Value";
         });
-        String stringValue = stringFuture.get();
         //Runnable
         var voidFuture = CompletableFuture.runAsync(() -> log("Runnable"));
+
+        String stringValue = stringFuture.get();
         voidFuture.get();
     }
 

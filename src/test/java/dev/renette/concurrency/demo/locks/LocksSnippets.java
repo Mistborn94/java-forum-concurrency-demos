@@ -9,8 +9,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static dev.renette.concurrency.demo.helper.Helper.generateCallablesList;
-import static dev.renette.concurrency.demo.helper.Helper.log;
+import static dev.renette.concurrency.demo.common.Helper.generateCallablesList;
+import static dev.renette.concurrency.demo.common.Helper.log;
 
 public class LocksSnippets {
 

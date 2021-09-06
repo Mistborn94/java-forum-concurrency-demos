@@ -1,32 +1,27 @@
 package dev.renette.concurrency.demo.latch;
 
+import dev.renette.concurrency.demo.common.ConcurrencyDemo;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static dev.renette.concurrency.demo.helper.Helper.generateCallablesList;
-import static dev.renette.concurrency.demo.helper.Helper.log;
+import static dev.renette.concurrency.demo.common.Helper.generateCallablesList;
+import static dev.renette.concurrency.demo.common.Helper.log;
 
-class CountdownLatchDemo {
+class CountdownLatchDemo extends ConcurrencyDemo {
 
     @Test
     void latchDemo() throws InterruptedException {
         int latchCount = 15;
+        var countDownLatch = new CountDownLatch(latchCount);
 
-        CountDownLatch countDownLatch = new CountDownLatch(latchCount);
-        var finalCallable = new WaitingRunnable(countDownLatch);
-        var callables = generateCallablesList(latchCount, () -> new CountdownCallable(countDownLatch));
-
-        ExecutorService executorService = Executors.newCachedThreadPool();
-
-        executorService.submit(finalCallable);
-        executorService.invokeAll(callables);
-
-        executorService.shutdown();
-        executorService.awaitTermination(1, TimeUnit.HOURS);
+        executorService.submit(new WaitingRunnable(countDownLatch));
+        executorService.invokeAll(generateCallablesList(latchCount, () -> new CountdownCallable(countDownLatch)));
     }
 
     @AllArgsConstructor
@@ -41,6 +36,7 @@ class CountdownLatchDemo {
             logLatchOpened();
         }
     }
+
     @AllArgsConstructor
     static class CountdownCallable implements Callable<Boolean> {
 
@@ -54,17 +50,29 @@ class CountdownLatchDemo {
         @SneakyThrows
         public Boolean call() {
             try {
-                log("\u001B[33m%s sleeping for %sms", name, sleepTime);
+                logSleeping(name, sleepTime);
                 Thread.sleep(sleepTime);
             } finally {
-                log("\u001B[36m%s counting down", name);
+                logCountingDown(name);
                 latch.countDown();
-                log("\u001B[36m%s complete", name);
+                logComplete(name);
             }
             return true;
         }
+
     }
 
+    private static void logComplete(String name) {
+        log("\u001B[36m%s complete", name);
+    }
+
+    private static void logCountingDown(String name) {
+        log("\u001B[36m%s counting down", name);
+    }
+
+    private static void logSleeping(String name, int sleepTime) {
+        log("\u001B[33m%s sleeping for %sms", name, sleepTime);
+    }
 
     private static void logLatchOpened() {
         log("\u001B[32mFinal task allowed through");
